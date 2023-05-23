@@ -1,0 +1,86 @@
+SERVIDOR STREAMA
+
+yum update
+yum install wget -y
+yum install java-1.8.0-openjdk -y
+wget https://github.com/streamaserver/streama/releases/download/v1.10.4/streama-1.10.4.jar
+mkdir /opt/streama
+mv streama-1.10.4.jar /opt/streama/streama.jar
+*probar con* java -jar /opt/streama/streama.jar
+mkdir /opt/streama/media
+chmod 664 /opt/streama/media
+nano /etc/systemd/system/streama.service
+	[Unit]
+	Description=Streama Server
+	After=syslog.target
+	After=network.target
+
+	[Service]
+	User=root
+	Type=simple
+	ExecStart=/bin/java -jar /opt/streama/streama.jar
+	Restart=always
+	StandardOutput=syslog
+	StandardError=syslog
+	SyslogIdentifier=Streama
+
+	[Install]
+	WantedBy=multi-user.target
+systemctl start streama
+systemctl enable streama
+systemctl status streama
+nano /etc/selinux/config
+	selinux=disabled
+reboot
+service NetworkManager stop
+chkconfig NetworkManager off
+reboot
+yum install httpd -y
+service httpd start
+service httpd status
+nano /etc/httpd/conf/httpd.conf
+	<VirtualHost *:80>
+	        ServerName 192.168.50.8
+	        Redirect permanent / http://192.168.50.8:8080
+	        TransferLog /var/log/httpd/streama.yourdomain.com_access.log
+	        ErrorLog /var/log/httpd/streama.yourdomain.com_error.log
+	</VirtualHost>
+	
+service httpd restart
+
+
+CLIENTE FIREWALL
+
+vim /etc/selinux/config
+	selinux=disabled
+reboot
+service NetworkManager stop
+chkconfig NetworkManager off
+reboot
+service firewalld start
+service firewalld status
+firewall-cmd --list-services
+nano /etc/sysctl.conf
+	net.ipv4.ip_forward = 1
+sysctl -p
+firewall-cmd --zone=public --add-interface=eth0
+firewall-cmd --zone=internal --add-interface=eth1
+firewall-cmd --reload
+firewall-cmd --direct --add-rule ipv4 nat POSTROUTING 0 -o eth0 -j MASQUERADE
+firewall-cmd --direct --add-rule ipv4 f ilter FORWARD 0 -i eth1 -o eth0 -j ACCEPT
+firewall-cmd --direct --add-rule ipv4 filter FORWARD 0 -i eth1 -o eth0 -j ACCEPT
+firewall-cmd --direct --add-rule ipv4 filter FORWARD 0 -i eth0 -o eth1 -m state --state RELATED,ESTABLISHED -j ACCEPT
+firewall-cmd --reload
+firewall-cmd --zone=internal --add-masquerade --permanent
+firewall-cmd --zone=public --add-masquerade --permanent
+firewall-cmd --zone=internal --add-port=8080/tcp --permanent
+firewall-cmd --zone=public --add-port=8080/tcp --permanent
+firewall-cmd --reload
+firewall-cmd --zone=public --add-service=http --permanent
+firewall-cmd --zone=internal --add-service=http --permanent
+firewall-cmd --reload
+firewall-cmd --zone="public" --add-forward-port=port=8080:proto=tcp:toport=8080:toaddr=192.168.50.8 --permanent
+firewall-cmd --zone="internal" --add-forward-port=port=8080:proto=tcp:toport=8080:toaddr=192.168.50.8 --permanent
+firewall-cmd --reload
+firewall-cmd --list-all-zones (VERIFICAR QUE TODO QUEDE BIEN)
+

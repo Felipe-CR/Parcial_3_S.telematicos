@@ -1,0 +1,41 @@
+<nav class="navbar navbar-light bg-light">
+  <span class="navbar-brand p-3 mb-0 h1">Parcial final</span>
+</nav>
+
+<div class="container m-6">
+  <div class="card-body">
+    <h3 class="card-title text-center mt-6"> Agregar Libro  </h3>
+      <form class="mt-6">
+<div class="mt-6">
+  <div class="mb-3">
+    <label for="author" class="form-label">Author</label>
+    <input type="text" class="form-control" name="author" [(ngModel)]="data.author">
+  </div>
+
+  <div class="mb-3">
+    <label for="description" class="form-label">Descripción</label>
+    <input type="text" class="form-control" name="description" [(ngModel)]="data.description">
+  </div>
+  <div class="mb-3">
+    <label for="title" class="form-label">Titulo</label>
+    <input type="text" class="form-control" name="title" [(ngModel)]="data.title">
+  </div>
+
+
+      </div>
+
+
+
+      </form>
+
+
+  </div>
+</div>
+
+<div class=" container mt-6 ml-20">
+  <button class="btn btn-success center-button fw-bold rounded-pill" role="button" (click)="create()">Registrar</button>
+</div>
+
+
+
+
